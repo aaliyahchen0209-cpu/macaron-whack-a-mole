@@ -358,6 +358,7 @@
     let combo = 0;
     let timeLeft = GAME_TIME;
     let gameRunning = false;
+    let highScore = Number(localStorage.getItem("whackHighScore")) || 0;
     let currentMole = null;
     let moleTimer = null;
     let countdownTimer = null;
@@ -511,15 +512,22 @@
       }, 1000);
     }
 
-    function endGame() {
-      gameRunning = false;
-      clearInterval(countdownTimer);
-      clearTimeout(moleTimer);
-      hideCurrentMole();
+function endGame() {
+  gameRunning = false;
+  clearInterval(countdownTimer);
+  clearTimeout(moleTimer);
+  hideCurrentMole();
 
-      gameOverEl.textContent = `遊戲結束！你的分數是 ${score} 分 🎀`;
-      startBtn.textContent = "再玩一次 ✨";
-    }
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem("whackHighScore", highScore);
+    gameOverEl.textContent = `🎉 新紀錄！${score} 分！🏆`;
+  } else {
+    gameOverEl.textContent = `遊戲結束！${score} 分 🎀｜最高分：${highScore} 分 🏆`;
+  }
+
+  startBtn.textContent = "再玩一次 ✨";
+}
 
     startBtn.addEventListener("click", startGame);
 
