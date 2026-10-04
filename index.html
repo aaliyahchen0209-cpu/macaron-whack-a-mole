@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>馬卡龍打地鼠 🐹</title>
+  <style>
+    :root {
+      --pink: #ffb6cf;
+      --pink-dark: #e98eaf;
+      --purple: #cdb8ff;
+      --blue: #b9e5ff;
+      --yellow: #ffe6a7;
+      --mint: #bdeedc;
+      --cream: #fffaf5;
+      --brown: #765c65;
+      --shadow: 0 12px 30px rgba(130, 91, 116, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang TC",
+        "Microsoft JhengHei", sans-serif;
+      color: var(--brown);
+      background:
+        radial-gradient(circle at 10% 10%, #ffe3ef 0 7%, transparent 8%),
+        radial-gradient(circle at 90% 15%, #e4d9ff 0 6%, transparent 7%),
+        radial-gradient(circle at 8% 88%, #d9f5eb 0 7%, transparent 8%),
+        linear-gradient(135deg, #fff6f9, #f5f0ff 48%, #eefaff);
+      display: flex;
+      justify-content: center;
+      padding: 28px 14px 42px;
+    }
+
+    .game {
+      width: min(920px, 100%);
+      text-align: center;
+    }
+
+    .title {
+      margin: 5px 0 4px;
+      font-size: clamp(30px, 6vw, 52px);
+      letter-spacing: 2px;
+      color: #8c6f82;
+      text-shadow: 0 4px 0 #fff;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      color: #a48799;
+      font-size: 15px;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.82);
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      backdrop-filter: blur(8px);
+    }
+
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      border-radius: 22px;
+      padding: 11px 8px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 25px;
+    }
+
+    .score { background: #ffe1ec; }
+    .time { background: #dff4ff; }
+    .combo { background: #eee5ff; }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      color: #765c65;
+      transition: transform .15s ease, box-shadow .15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: scale(.96);
+    }
+
+    #startBtn {
+      background: linear-gradient(135deg, #ffb6cf, #cdb8ff);
+      padding: 13px 25px;
+      border-radius: 999px;
+      box-shadow: 0 7px 16px rgba(199, 148, 186, .25);
+    }
+
+    .hint {
+      font-size: 13px;
+      color: #a48799;
+    }
+
+    .board {
+      --hole-size: clamp(78px, 18vw, 132px);
+      display: grid;
+      grid-template-columns: repeat(3, var(--hole-size));
+      justify-content: center;
+      gap: clamp(15px, 4vw, 34px);
+      padding: 18px 4px 25px;
+    }
+
+    .hole {
+      position: relative;
+      width: var(--hole-size);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #d5b0a1, #b98d80);
+      box-shadow:
+        inset 0 8px 0 rgba(255,255,255,.2),
+        inset 0 -10px 14px rgba(102,70,63,.24),
+        0 9px 0 #a97c72;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+
+    .hole::after {
+      content: "";
+      position: absolute;
+      inset: 13%;
+      border-radius: 50%;
+      background: rgba(91, 61, 56, .23);
+      z-index: 0;
+    }
+
+    .mole {
+      position: absolute;
+      z-index: 2;
+      left: 12%;
+      bottom: -8%;
+      width: 76%;
+      aspect-ratio: 1;
+      border-radius: 48% 48% 42% 42%;
+      background: #b88a72;
+      border: 4px solid #9a6d5c;
+      box-shadow: inset 0 8px 0 rgba(255,255,255,.16);
+      transform: translateY(105%);
+      transition: transform .22s cubic-bezier(.2,.85,.25,1.2);
+      user-select: none;
+    }
+
+    .mole.up {
+      transform: translateY(5%);
+    }
+
+    .mole.hit {
+      animation: hit .22s ease forwards;
+    }
+
+    .ear {
+      position: absolute;
+      top: -9%;
+      width: 28%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #b88a72;
+      border: 4px solid #9a6d5c;
+      z-index: -1;
+    }
+
+    .ear::after {
+      content: "";
+      position: absolute;
+      inset: 25%;
+      border-radius: 50%;
+      background: #efb2bd;
+    }
+
+    .ear.left { left: 5%; }
+    .ear.right { right: 5%; }
+
+    .eye {
+      position: absolute;
+      top: 36%;
+      width: 9%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #55454a;
+    }
+
+    .eye.left { left: 30%; }
+    .eye.right { right: 30%; }
+
+    .nose {
+      position: absolute;
+      left: 50%;
+      top: 48%;
+      width: 11%;
+      aspect-ratio: 1;
+      transform: translateX(-50%);
+      border-radius: 55% 55% 60% 60%;
+      background: #ef9faf;
+    }
+
+    .mouth {
+      position: absolute;
+      left: 50%;
+      top: 57%;
+      width: 22%;
+      height: 12%;
+      transform: translateX(-50%);
+      border-bottom: 3px solid #70525a;
+      border-radius: 0 0 50% 50%;
+    }
+
+    .blush {
+      position: absolute;
+      top: 51%;
+      width: 17%;
+      height: 8%;
+      border-radius: 50%;
+      background: rgba(255, 171, 190, .65);
+    }
+
+    .blush.left { left: 13%; }
+    .blush.right { right: 13%; }
+
+    .feedback {
+      position: absolute;
+      z-index: 10;
+      pointer-events: none;
+      left: 50%;
+      top: 25%;
+      transform: translate(-50%, 0) scale(.7);
+      font-size: clamp(22px, 4vw, 34px);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 3px 0 #c986a0, 0 0 8px rgba(255,255,255,.8);
+      opacity: 0;
+    }
+
+    .feedback.show {
+      animation: feedback .65s ease-out forwards;
+    }
+
+    .spark {
+      position: absolute;
+      z-index: 9;
+      pointer-events: none;
+      width: 9px;
+      height: 18px;
+      border-radius: 999px;
+      background: #fff;
+      left: 50%;
+      top: 50%;
+      opacity: 0;
+    }
+
+    .spark.show {
+      animation: sparkle .45s ease-out forwards;
+    }
+
+    .game-over {
+      margin: 3px 0 2px;
+      min-height: 28px;
+      font-weight: 800;
+      color: #9a7b8c;
+    }
+
+    @keyframes hit {
+      0% { transform: translateY(5%) scale(1); }
+      45% { transform: translateY(5%) scale(.86) rotate(-4deg); }
+      100% { transform: translateY(105%) scale(.7); }
+    }
+
+    @keyframes feedback {
+      0% { opacity: 0; transform: translate(-50%, 15px) scale(.65) rotate(-8deg); }
+      25% { opacity: 1; transform: translate(-50%, -5px) scale(1.12) rotate(4deg); }
+      100% { opacity: 0; transform: translate(-50%, -58px) scale(.9) rotate(0); }
+    }
+
+    @keyframes sparkle {
+      0% { opacity: 1; transform: translate(-50%, -50%) rotate(0) translateY(0); }
+      100% { opacity: 0; transform: translate(-50%, -50%) rotate(45deg) translateY(-35px); }
+    }
+
+    @media (max-width: 500px) {
+      body { padding-top: 15px; }
+      .panel { padding: 12px; border-radius: 24px; }
+      .board { gap: 13px; }
+      .stat strong { font-size: 21px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="game">
+    <h1 class="title">🐹 馬卡龍打地鼠</h1>
+    <p class="subtitle">準備好了嗎？抓住冒出來的小地鼠！</p>
+
+    <section class="panel">
+      <div class="hud">
+        <div class="stat score">分數<strong id="score">0</strong></div>
+        <div class="stat time">時間<strong id="time">30</strong></div>
+        <div class="stat combo">連擊<strong id="combo">0</strong></div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn">開始遊戲 ✨</button>
+        <span class="hint">點擊／輕觸地鼠得分</span>
+      </div>
+
+      <div id="board" class="board" aria-label="打地鼠遊戲區"></div>
+
+      <div id="gameOver" class="game-over">按下「開始遊戲」開始！</div>
+    </section>
+  </main>
+
+  <script>
+    const board = document.getElementById("board");
+    const scoreEl = document.getElementById("score");
+    const timeEl = document.getElementById("time");
+    const comboEl = document.getElementById("combo");
+    const startBtn = document.getElementById("startBtn");
+    const gameOverEl = document.getElementById("gameOver");
+
+    const HOLE_COUNT = 9;
+    const GAME_TIME = 30;
+
+    let score = 0;
+    let combo = 0;
+    let timeLeft = GAME_TIME;
+    let gameRunning = false;
+    let currentMole = null;
+    let moleTimer = null;
+    let countdownTimer = null;
+
+    function createBoard() {
+      board.innerHTML = "";
+
+      for (let i = 0; i < HOLE_COUNT; i++) {
+        const hole = document.createElement("div");
+        hole.className = "hole";
+        hole.dataset.index = i;
+
+        const mole = document.createElement("div");
+        mole.className = "mole";
+        mole.innerHTML = `
+          <span class="ear left"></span>
+          <span class="ear right"></span>
+          <span class="eye left"></span>
+          <span class="eye right"></span>
+          <span class="nose"></span>
+          <span class="mouth"></span>
+          <span class="blush left"></span>
+          <span class="blush right"></span>
+        `;
+
+        hole.appendChild(mole);
+        board.appendChild(hole);
+
+        mole.addEventListener("click", (event) => {
+          event.stopPropagation();
+          hitMole(mole, hole);
+        });
+      }
+    }
+
+    function hitMole(mole, hole) {
+      if (!gameRunning || !mole.classList.contains("up")) return;
+
+      score += 10;
+      combo += 1;
+
+      // 連擊加分
+      if (combo >= 5) score += 5;
+
+      updateHUD();
+      showFeedback(hole, combo >= 5 ? "BONUS! ✨" : "+10 💕");
+      createSparkles(hole);
+
+      mole.classList.remove("up");
+      mole.classList.add("hit");
+
+      setTimeout(() => {
+        mole.classList.remove("hit");
+      }, 240);
+
+      currentMole = null;
+      scheduleNextMole(150);
+    }
+
+    function showFeedback(hole, text) {
+      const feedback = document.createElement("div");
+      feedback.className = "feedback";
+      feedback.textContent = text;
+      hole.appendChild(feedback);
+
+      requestAnimationFrame(() => feedback.classList.add("show"));
+
+      setTimeout(() => feedback.remove(), 700);
+    }
+
+    function createSparkles(hole) {
+      for (let i = 0; i < 5; i++) {
+        const spark = document.createElement("span");
+        spark.className = "spark";
+        spark.style.transform = `translate(-50%, -50%) rotate(${i * 72}deg)`;
+        hole.appendChild(spark);
+
+        requestAnimationFrame(() => spark.classList.add("show"));
+        setTimeout(() => spark.remove(), 500);
+      }
+    }
+
+    function hideCurrentMole() {
+      if (currentMole) {
+        currentMole.classList.remove("up");
+        currentMole = null;
+      }
+    }
+
+    function showRandomMole() {
+      if (!gameRunning) return;
+
+      hideCurrentMole();
+
+      const holes = [...document.querySelectorAll(".hole")];
+      const index = Math.floor(Math.random() * holes.length);
+      const hole = holes[index];
+      const mole = hole.querySelector(".mole");
+
+      currentMole = mole;
+      mole.classList.add("up");
+
+      // 地鼠停留時間會隨分數略微縮短，遊戲越來越有挑戰
+      const speed = Math.max(520, 1050 - Math.floor(score / 40) * 45);
+
+      clearTimeout(moleTimer);
+      moleTimer = setTimeout(() => {
+        if (mole === currentMole) {
+          mole.classList.remove("up");
+          currentMole = null;
+          combo = 0;
+          updateHUD();
+          scheduleNextMole(120);
+        }
+      }, speed);
+    }
+
+    function scheduleNextMole(delay = 250) {
+      clearTimeout(moleTimer);
+      moleTimer = setTimeout(showRandomMole, delay);
+    }
+
+    function updateHUD() {
+      scoreEl.textContent = score;
+      timeEl.textContent = timeLeft;
+      comboEl.textContent = combo;
+    }
+
+    function startGame() {
+      clearInterval(countdownTimer);
+      clearTimeout(moleTimer);
+
+      score = 0;
+      combo = 0;
+      timeLeft = GAME_TIME;
+      gameRunning = true;
+
+      updateHUD();
+      gameOverEl.textContent = "快快快！地鼠出現了！🐹";
+      startBtn.textContent = "重新開始 🔄";
+
+      showRandomMole();
+
+      countdownTimer = setInterval(() => {
+        timeLeft--;
+        updateHUD();
+
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      gameRunning = false;
+      clearInterval(countdownTimer);
+      clearTimeout(moleTimer);
+      hideCurrentMole();
+
+      gameOverEl.textContent = `遊戲結束！你的分數是 ${score} 分 🎀`;
+      startBtn.textContent = "再玩一次 ✨";
+    }
+
+    startBtn.addEventListener("click", startGame);
+
+    createBoard();
+    updateHUD();
+  </script>
+</body>
+</html>
