@@ -416,14 +416,22 @@
     function hitMole(mole, hole) {
       if (!gameRunning || !mole.classList.contains("up")) return;
 
-      score += 10;
+      let points = 10;
+
+if (mole.classList.contains("pink")) {
+  points = 20;
+} else if (mole.classList.contains("purple")) {
+  points = 30;
+}
+
+score += points;
       combo += 1;
 
       // 連擊加分
       if (combo >= 5) score += 5;
 
       updateHUD();
-      showFeedback(hole, combo >= 5 ? "BONUS! ✨" : "+10 💕");
+     showFeedback(hole, combo >= 5 ? `BONUS! +${points} ✨` : `+${points} 💕`);
       createSparkles(hole);
 
       mole.classList.remove("up");
