@@ -317,6 +317,25 @@
       .board { gap: 13px; }
       .stat strong { font-size: 21px; }
     }
+.mole.pink {
+  background: #ff9fca;
+  border-color: #e879aa;
+}
+
+.mole.pink .ear {
+  background: #ff9fca;
+  border-color: #e879aa;
+}
+
+.mole.purple {
+  background: #c5a8ff;
+  border-color: #a78ae8;
+}
+
+.mole.purple .ear {
+  background: #c5a8ff;
+  border-color: #a78ae8;
+}
   </style>
 </head>
 
@@ -457,7 +476,15 @@
       const index = Math.floor(Math.random() * holes.length);
       const hole = holes[index];
       const mole = hole.querySelector(".mole");
+mole.classList.remove("pink", "purple");
 
+const randomType = Math.floor(Math.random() * 3);
+
+if (randomType === 1) {
+  mole.classList.add("pink");
+} else if (randomType === 2) {
+  mole.classList.add("purple");
+}
       currentMole = mole;
       mole.classList.add("up");
 
